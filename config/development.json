@@ -1,0 +1,20 @@
+{
+    "statics": ["test/resources/public"],
+    "server": {
+        "port": 8080
+    },
+    "mail": {
+        "transport": {
+            "host": "smtp.anyServer.com",
+            "port": 123,
+            "secure": true,
+            "auth": {
+                "user": "user",
+                "pass": "passwd"
+            }
+        }
+    },
+    "cors": {
+        "allowedOrigins": "127.0.0.1"
+    }
+}
