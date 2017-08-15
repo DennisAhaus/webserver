@@ -11,12 +11,10 @@
   "dependencies": {
     "config": "^1.26.1",
     "express": "^4.15.3",
-    "node-sendmail-express-router": "git+https://github.com/DennisAhaus/node-sendmail-express-router.git",
-    "server": "git+https://github.com/DennisAhaus/node-sendmail-express-router.git"
+    "helmet": "^3.8.1"
   },
   "devDependencies": {
     "mocha": "^3.4.2",
-    "sinon": "^2.3.8",
     "supertest": "^3.0.0"
   }
 }
