@@ -1,28 +1,41 @@
 # Config
 
-Create file <node module project root>/config/default.json
+Create file <node module project root>/config/default.json following the rules of `npm config` module.
 
 ```json
 {
-    "statics": ["/var/www/website"],
+    "static": [
+        "test/resources/public1",
+        "test/resources/public2"
+    ],
     "server": {
-        "port": 80
-    },
-    "mail": {
-        "transport": {
-            "host": "smtp.anyServer.com",
-            "port": 123,
-            "secure": true,
-            "auth": {
-                "user": "user",
-                "pass": "passwd"
-            }
+        "http": {
+            "port": 80,
+            "httpRedirect": "https://localhost"
+        },
+        "https": {
+            "options": {
+                "cert": "./test/resources/cert.pem",
+                "key": "./test/resources/key.pem",
+                "passphrase": "1234"
+            },
+            "port": 443
         }
     },
     "cors": {
-        "allowedOrigins": "127.0.0.1"
+        "allowed": {
+            "hosts": [
+                ".*127.0.0.1.*",
+                ".*localhost.*"
+            ]
+        },
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*"
+        }
     }
 }
 ```
 
-Start the server /server.js
+Start the server /server.js. The http instance will redirect to the https instance.
