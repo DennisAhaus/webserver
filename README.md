@@ -39,3 +39,5 @@ Create file <node module project root>/config/default.json following the rules o
 ```
 
 Start the server /server.js. The http instance will redirect to the https instance.
+TO change the config file set 'NODE_APP_INSTANCE=<instance name>` then config module will load
+`default-<instance name>.json`
