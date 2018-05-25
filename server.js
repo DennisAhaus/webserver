@@ -8,6 +8,9 @@ const url = require('url');
 
 const app = require('./lib/app');
 
+let logging = false;
+if (config.has('logging')) logging = config.get('logging');
+
 if (cluster.isMaster) {
     console.log(`Master ${process.pid} is running`);
 
@@ -49,10 +52,10 @@ if (cluster.isMaster) {
 
             requestListener = (req, res) => {
                 const target = redirectTo.replace('{url}', req.url);
-                console.log(`${req.method} ${req.url}, redirect to '${target}'`);
+                if (logging) console.log(`${req.method} ${req.url}, redirect to '${target}'`);
                 res.writeHead(301, { Location: target });
                 res.on('error', (error) => {
-                    console.error(error);
+                    if (logging) console.error(error);
                 }).end();
             };
 
@@ -62,10 +65,20 @@ if (cluster.isMaster) {
                 const proxyTargetUrl = proxyUrl.replace('{url}', req.url);
                 const proxyTargetUrlParsed = url.parse(proxyTargetUrl);
 
-                console.log(`${req.method} ${req.url}, proxy to ${proxyTargetUrl}`);
+                if (logging) console.log(`${req.method} ${req.url}, proxy to ${proxyTargetUrl}`);
 
                 let targetModule = proxyTargetUrl.startsWith('https') ? https : http;
-                proxyTargetUrlParsed.headers = req.headers;
+
+                let removeHeaders = [];
+                if (config.has(`server.${protocol}.headers.remove`)) {
+                    removeHeaders = config.get(`server.${protocol}.headers.remove`);
+                }
+
+                if (proxyTargetUrlParsed.headers == null) proxyTargetUrlParsed.headers = {};
+                Object.keys(req.headers).filter(key => !removeHeaders.includes(key))
+                    .forEach((headerName) => {
+                        proxyTargetUrlParsed.headers[headerName] = req.headers[headerName];
+                    })
 
                 const targetProxy = targetModule.request(proxyTargetUrlParsed, function (proxyResponse) {
                     res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
@@ -74,7 +87,7 @@ if (cluster.isMaster) {
 
                 req.pipe(targetProxy, { end: true })
                     .on('error', (error) => {
-                        console.error(error);
+                        if (logging) console.error(error);
                     });
             };
 
