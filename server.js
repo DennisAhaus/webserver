@@ -3,11 +3,10 @@ const cluster = require('cluster');
 const fs = require('fs');
 const numCPUs = require('os').cpus().length;
 const https = require('https')
-const http = require('http')
+const http = require('http');
+const url = require('url');
 
 const app = require('./lib/app');
-const httpPort = config.get('server.http.port');
-
 
 if (cluster.isMaster) {
     console.log(`Master ${process.pid} is running`);
@@ -15,43 +14,97 @@ if (cluster.isMaster) {
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
-    
+
     cluster.on('exit', (worker, code, signal) => {
         console.log(`Worker ${worker.process.pid} died`);
     });
-    
+
 } else {
-    
+
+    const servers = [];
+
     console.log(`Starting Worker ${process.pid}...`);
-    config.get('server.http.port');
 
-    if (config.get('server.https') != null) {
+    const createServer = (protocol) => {
 
-        const options = {
-            cert: fs.readFileSync(config.get('server.https.options.cert')),
-            key: fs.readFileSync(config.get('server.https.options.key')),
-        };
+        const port = config.has(`server.${protocol}.port`) ? config.get(`server.${protocol}.port`) : 8080;
+        const redirectTo = config.has(`server.${protocol}.redirect`) ? config.get(`server.${protocol}.redirect`) : null
+        const proxyUrl = config.has(`server.${protocol}.proxy`) ? config.get(`server.${protocol}.proxy`) : null;
 
-        if (config.has('server.https.options.passphrase')) {
-            options.passphrase = config.get('server.https.options.passphrase');
+        let requestListener = null;
+        let options = null;
+
+        if (protocol === 'https') {
+            options = {
+                cert: fs.readFileSync(config.get(`server.${protocol}.cert`)),
+                key: fs.readFileSync(config.get(`server.${protocol}.key`)),
+            };
+
+            if (config.has(`server.${protocol}.passphrase`)) {
+                options.passphrase = config.get(`server.${protocol}.passphrase`);
+            }
         }
 
-        if (config.has('server.http.httpRedirect')) {
-            // set up a route to redirect http to https
-            const redirectTo = config.get('server.http.httpRedirect');
-            console.log(`HTTP server with redirection to '${redirectTo}' is started`);
+        if (redirectTo != null) {
 
-            http.createServer((req, res) => {
-                res.writeHead(302, { 'Location': redirectTo + req.url });
-                res.end();
-            }).listen(httpPort);
+            requestListener = (req, res) => {
+                const target = redirectTo.replace('{url}', req.url);
+                console.log(`${req.method} ${req.url}, redirect to '${target}'`);
+                res.writeHead(301, { Location: target });
+                res.on('error', (error) => {
+                    console.error(error);
+                }).end();
+            };
+
+        } else if (proxyUrl != null) {
+
+            requestListener = (req, res) => {
+                const proxyTargetUrl = proxyUrl.replace('{url}', req.url);
+                const proxyTargetUrlParsed = url.parse(proxyTargetUrl);
+
+                console.log(`${req.method} ${req.url}, proxy to ${proxyTargetUrl}`);
+
+                let targetModule = proxyTargetUrl.startsWith('https') ? https : http;
+                proxyTargetUrlParsed.headers = req.headers;
+
+                const targetProxy = targetModule.request(proxyTargetUrlParsed, function (proxyResponse) {
+                    res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+                    proxyResponse.pipe(res, { end: true });
+                });
+
+                req.pipe(targetProxy, { end: true })
+                    .on('error', (error) => {
+                        console.error(error);
+                    });
+            };
+
+        } else {
+            requestListener = app;
         }
 
-        module.exports = https.createServer(options, app).listen(config.get('server.https.port'));
 
-    } else {
-        module.exports = http.createServer(app).listen(httpPort);
+        if (protocol === 'https') {
+            servers.push({
+                server: https.createServer(options, requestListener),
+                port, protocol
+            });
+        } else {
+            servers.push({
+                server: http.createServer(requestListener),
+                port, protocol
+            });
+        }
+
     }
+
+    if (config.has('server.http')) createServer('http');
+    if (config.has('server.https')) createServer('https');
+
+    module.exports = servers.map((options) => {
+        return options.server.listen(options.port, () => {
+            console.log(`${options.protocol} server listen on port ${options.port}`);
+        })
+    })
 
 }
 

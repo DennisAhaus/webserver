@@ -4,22 +4,21 @@ Create file <node module project root>/config/default.json following the rules o
 
 ```json
 {
-    "static": [
-        "test/resources/public1",
-        "test/resources/public2"
-    ],
     "server": {
         "http": {
             "port": 80,
-            "httpRedirect": "https://localhost"
+            "redirect": "https://localhost{url}",
+            "static": [
+                "a/path/to/http/resources1",
+                "a/path/to/http/resources2",
+            ],
         },
         "https": {
-            "options": {
-                "cert": "./test/resources/cert.pem",
-                "key": "./test/resources/key.pem",
-                "passphrase": "1234"
-            },
-            "port": 443
+            "cert": "./test/resources/cert.pem",
+            "key": "./test/resources/key.pem",
+            "passphrase": "1234",
+            "port": 443,
+            "proxy":"https://example.com{url}"
         }
     },
     "cors": {
@@ -38,6 +37,5 @@ Create file <node module project root>/config/default.json following the rules o
 }
 ```
 
-Start the server /server.js. The http instance will redirect to the https instance.
-TO change the config file set 'NODE_APP_INSTANCE=<instance name>` then config module will load
-`default-<instance name>.json`
+Start the server /server.js. To change the config file set `NODE_APP_INSTANCE=\<instance name\>`
+then config module will load `default-<instance name>.json`

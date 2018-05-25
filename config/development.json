@@ -1,20 +1,19 @@
 {
-    "static": [
-        "test/resources/public1",
-        "test/resources/public2"
-    ],
     "server": {
         "http": {
-            "port": 80,
-            "httpRedirect": "https://localhost"
+            "port": 8080,
+            "redirect": "https://localhost:8081{url}",
+            "static": [
+                "test/resources/public1",
+                "test/resources/public2"
+            ]
         },
         "https": {
-            "options": {
-                "cert": "./test/resources/cert.pem",
-                "key": "./test/resources/key.pem",
-                "passphrase": "1234"
-            },
-            "port": 443
+            "port": 8081,
+            "cert": "./test/resources/cert.pem",
+            "key": "./test/resources/key.pem",
+            "passphrase": "1234",
+            "proxy": "http://localhost:9090{url}"
         }
     },
     "cors": {
