@@ -4,36 +4,44 @@ Create file <node module project root>/config/default.json following the rules o
 
 ```json
 {
-    "server": {
-        "http": {
-            "port": 80,
-            "redirect": "https://localhost{url}",
+    "servers": [
+        {
+            "protocol": "http",
+            "port": 8080,
+            "redirect": "https://localhost:8081{url}",
             "static": [
-                "a/path/to/http/resources1",
-                "a/path/to/http/resources2",
+                "test/resources/public1",
+                "test/resources/public2"
             ],
+            "cors": {
+                "allowed": {
+                    "hosts": [
+                        ".*127.0.0.1.*",
+                        ".*localhost.*"
+                    ]
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*"
+                }
+            }
         },
-        "https": {
+        {
+            "protocol": "https",
+            "port": 8081,
             "cert": "./test/resources/cert.pem",
             "key": "./test/resources/key.pem",
             "passphrase": "1234",
-            "port": 443,
-            "proxy":"https://example.com{url}"
+            "proxy": "https://example.com{url}",
+            "headers": {
+                "remove": [
+                    "Host",
+                    "host"
+                ]
+            }
         }
-    },
-    "cors": {
-        "allowed": {
-            "hosts": [
-                ".*127.0.0.1.*",
-                ".*localhost.*"
-            ]
-        },
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*"
-        }
-    }
+    ]
 }
 ```
 
