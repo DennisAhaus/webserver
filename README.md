@@ -38,7 +38,11 @@ Create file <node module project root>/config/default.json following the rules o
                 "remove": [
                     "Host",
                     "host"
-                ]
+                ],
+                "replace": {
+                    "host": "anyUrl.com",
+                    "Host": "anyUrl.com"
+                }
             }
         }
     ]

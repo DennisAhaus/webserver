@@ -33,7 +33,11 @@
                 "remove": [
                     "Host",
                     "host"
-                ]
+                ],
+                "replace": {
+                    "host": "anyUrl.com",
+                    "Host": "anyUrl.com"
+                }
             }
         }
     ]
