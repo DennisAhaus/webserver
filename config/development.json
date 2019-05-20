@@ -2,8 +2,11 @@
     "servers": [
         {
             "protocol": "http",
-            "port": 8080,
-            "redirect": "https://localhost:8081{url}",
+            "port": 8081,
+            "redirect": {
+                "url": "/redirect",
+                "target": "https://localhost:8082{url}"
+            },
             "static": [
                 "test/resources/public1",
                 "test/resources/public2"
@@ -20,24 +23,26 @@
                     "Access-Control-Allow-Methods": "*",
                     "Access-Control-Allow-Headers": "*"
                 }
-            }
+            },
+            "interceptor": [
+                {
+                    "url": "*",
+                    "file": "interceptor.js"
+                }
+            ]
         },
         {
             "protocol": "https",
-            "port": 8081,
+            "port": 8082,
             "cert": "./test/resources/cert.pem",
             "key": "./test/resources/key.pem",
             "passphrase": "1234",
-            "proxy": "https://example.com{url}",
+            "proxy": "http://localhost:8080{url}",
             "headers": {
                 "remove": [
                     "Host",
                     "host"
-                ],
-                "replace": {
-                    "host": "anyUrl.com",
-                    "Host": "anyUrl.com"
-                }
+                ]
             }
         }
     ]

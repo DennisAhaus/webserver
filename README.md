@@ -9,6 +9,11 @@ Create file <node module project root>/config/default.json following the rules o
             "protocol": "http",
             "port": 8080,
             "redirect": "https://localhost:8081{url}",
+            // Or
+            "redirect": {
+                "url": "/redirect",
+                "target": "https://localhost:8081{url}"
+            },
             "static": [
                 "test/resources/public1",
                 "test/resources/public2"
@@ -25,7 +30,13 @@ Create file <node module project root>/config/default.json following the rules o
                     "Access-Control-Allow-Methods": "*",
                     "Access-Control-Allow-Headers": "*"
                 }
-            }
+            },
+            "interceptor": [
+                {
+                    "url": "*",
+                    "file": "interceptor.js"
+                }
+            ]
         },
         {
             "protocol": "https",
@@ -48,6 +59,22 @@ Create file <node module project root>/config/default.json following the rules o
     ]
 }
 ```
+# Usage
 
-Start the server /server.js. To change the config file set `NODE_APP_INSTANCE=\<instance name\>`
+### Start the server
+`node server.js`
+
+### Config file
+`config/default.json` is used as config file.
+
+To change the config file set `NODE_APP_INSTANCE=<instance name>`
 then config module will load `default-<instance name>.json`
+
+### Interceptor
+The interceptor file must look like this
+
+```js
+module.exports = (req, res, next) => {
+    next();
+}
+```

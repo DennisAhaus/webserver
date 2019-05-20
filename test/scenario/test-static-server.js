@@ -1,5 +1,7 @@
 const supertest = require('supertest');
-const app = require('../../index')({
+const AppFactory = require('../../index');
+
+const app = AppFactory.create({
     "static": [
         "test/resources/public1",
         "test/resources/public2"
@@ -15,14 +17,14 @@ describe(__filename, () => {
     describe('Test server', () => {
         describe('GET /', () => {
 
-            it('should get website html', done => {
+            it('should get first static website html', done => {
                 client
                     .get('/')
                     .expect(200, htmlData1)
                     .end(done);
             });
 
-            it('should get seconds static website html', done => {
+            it('should get second static website html', done => {
                 client
                     .get('/index2.html')
                     .expect(200, htmlData2)
